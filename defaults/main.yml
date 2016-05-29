@@ -10,3 +10,7 @@ artifactory_group: "artifactory"
 artifactory_password: "password"
 
 artifactory_license: oss
+
+postgres_host: "localhost"
+postgres_login_passwd: ""
+postgres_login_user: "postgres"

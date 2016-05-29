@@ -1,6 +1,6 @@
 type=postgresql
 driver=org.postgresql.Driver
-url=jdbc:postgresql://localhost:5432/artifactory
+url=jdbc:postgresql://{{ postgres_host }}:5432/artifactory
 username={{artifactory_username}}
 password={{artifactory_password}}
 

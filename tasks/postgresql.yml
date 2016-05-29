@@ -4,17 +4,32 @@
   when: ansible_os_family == "RedHat" or ansible_os_family == "Debian"
 
 - name: 'create artifactory database user in postgres'
-  become_user: postgres
-  postgresql_user: name='{{artifactory_username}}' password='{{artifactory_password}}'
+  postgresql_user: 
+    login_host: '{{ postgres_host }}'
+    login_password: '{{ postgres_login_passwd }}'
+    login_user: '{{ postgres_login_user }}'
+    name: '{{artifactory_username}}' 
+    password: '{{artifactory_password}}'
 
 - name: 'create artifactory database in postgres'
-  become_user: postgres
-  postgresql_db: name=artifactory owner=artifactory template='template0' encoding='UTF-8'
+  postgresql_db: 
+    login_host: '{{ postgres_host }}'
+    login_password: '{{ postgres_login_passwd }}'
+    login_user: '{{ postgres_login_user }}'
+    name: 'artifactory'
+    owner: '{{artifactory_username}}' 
+    template: 'template0'
+    encoding: 'UTF-8'
 
 - name: 'download jdbc connector for postgres'
   get_url: url={{postgres_jdbc_url}} dest={{artifactory_home}}/tomcat/lib
   register: jdbc_installed
 
 - name: 'enable postgresql driver'
-  template: src=storage_postgresql.j2 dest={{artifactory_home}}/etc/storage.properties owner=artifactory group=artifactory mode=0600
+  template: 
+    src: storage_postgresql.j2 
+    dest: '{{artifactory_home}}/etc/storage.properties'
+    owner: '{{ artifactory_username }}'
+    group: '{{ artifactory_group }}'
+    mode: 0600
 
