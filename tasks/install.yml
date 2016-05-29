@@ -14,27 +14,39 @@
       - "'version' in java.stderr"
 
 - name: install prerequesites
-  command: yum install -y openssl
+  yum: name=openssl,unzip
+
+- name: Create artifactory group
+  group: name={{ artifactory_group}} state=present system=true
 
 - name: 'create user to run artifactory'
-  user: name={{artifactory_username}} home=/opt/artifactory/ shell=/bin/bash system=true
+  user: name={{artifactory_username}} groups={{ artifactory_group }} home=/opt/artifactory/ shell=/bin/bash system=true
+
+#- copy: src=tmpfiles.d-artifactory.conf dest=/etc/tmpfiles.d/artifactory.conf
+#  register: tmpfiles_result
+#- command: systemd-tmpfiles --create --clean --prefix=/var/run/artifactory
+#  when: tmpfiles_result.changed
+
+- file: state=directory path=/var/cache/ansible
 
 - name: 'verify presence of artifactory'
   stat: path="/opt/artifactory/artifactory-{{artifactory_version}}/webapps/artifactory.war"
   register: jarfile
 
 - name: 'verify presence of artifactory_file'
-  stat: path=/tmp/{{artifactory_file}}
+  stat: path=/var/cache/ansible/{{artifactory_file}}
   register: download
 
 - name: 'download artifactory'
-  get_url: url={{artifactory_url}} dest=/tmp/{{artifactory_file}}
+  get_url: url={{artifactory_url}} dest=/var/cache/ansible/{{artifactory_file}}
   retries: 3
   when: not download.stat.exists
 
 - name: 'unzip artifactory'
-  command: unzip -o  /tmp/{{artifactory_file}} -d /opt/artifactory
+  command: unzip -o  /var/cache/ansible/{{artifactory_file}} -d /opt/artifactory
   when: not jarfile.stat.exists
+
+- file: owner={{ artifactory_username }} group={{ artifactory_group }} recurse=yes path=/opt/artifactory follow=yes
 
 - name: 'verify if an update is needed'
   shell: "ls -1d /opt/artifactory/artifactory-{{artifactory_license}}-* | grep -v artifactory-{{artifactory_license}}-{{artifactory_version}}"
@@ -56,34 +68,45 @@
   when: previous.stdout
 
 #- name: 'verify presence of artifactory download'
-#  stat: path=/tmp/{{artifactory_file}}
+#  stat: path=/var/cache/ansible/{{artifactory_file}}
 #  register: artifactory_download
 
 #- name: 'cleanup artifactory download'
-#  file: dest=/tmp/{{artifactory_file}} state=absent
+#  file: dest=/var/cache/ansible/{{artifactory_file}} state=absent
 #  when: artifactory_download.stat.exists
 
-- name: 'create config dir for artifactory'
-  file: dest=/etc/opt/jfrog/artifactory state=directory owner=root mode=0755
-
 - name: 'create configuration file'
-  template: src=etc-opt-jfrog-artifactory-default.j2 dest=/etc/opt/jfrog/artifactory/default
-                owner=root group=root mode=0644
+  template: src=etc-opt-jfrog-artifactory-default.j2 dest=/etc/sysconfig/artifactory owner=root group=root mode=0644
 
 - name: 'symlink current version'
   file:
-    state=link
-    dest=/opt/artifactory/artifactory
-    src=/opt/artifactory/artifactory-{{artifactory_license}}-{{artifactory_version}}
+    state: link
+    dest: "{{ artifactory_home }}"
+    src: "/opt/artifactory/artifactory-{{artifactory_license}}-{{artifactory_version}}"
+    owner: "{{ artifactory_username }}"
+    group: "{{ artifactory_group }}"
 
-- name: 'install artifactory as a service'
-  command: "{{artifactory_home}}/bin/installService.sh {{artifactory_username}}"
+- copy: src=empty dest={{ artifactory_home }}/bin/artifactory.default
+
+#- name: 'install artifactory as a service'
+#  command: "{{artifactory_home}}/bin/installService.sh {{artifactory_username}}"
+#  notify:
+#    - 'restart artifactory'
+
+- name: 'create deploy script'
+  template:
+    src: deploy-file.sh 
+    dest: /usr/local/bin/deploy-file.sh
+    owner: "{{ artifactory_username }}"
+    group: "{{ artifactory_username }}"
+    mode: 0755
+
+- template: src=artifactory.service dest=/etc/systemd/system/artifactory.service
+  register: artifactory_service
+- command: systemctl daemon-reload
+  when: artifactory_service.changed
   notify:
     - 'restart artifactory'
 
-- name: 'create deploy script'
-  template: src=deploy-file.sh dest=/usr/local/bin/deploy-file.sh
-                owner={{ artifactory_user }} group={{ artifactory_user }} mode=0755
-
 - name: 'enable artifactory service'
-  service: name=artifactory enabled=true
+  service: name=artifactory enabled=true state=started

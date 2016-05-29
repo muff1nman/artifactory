@@ -2,7 +2,7 @@
 
 artifactory_url: "https://bintray.com/artifact/download/jfrog/artifactory/jfrog-artifactory-{{artifactory_license}}-{{artifactory_version}}.zip"
 artifactory_file: "artifactory-{{artifactory_version}}.zip"
-artifactory_home: "/opt/artifactory/artifactory-{{artifactory_license}}-{{artifactory_version}}"
+artifactory_home: "/opt/artifactory/artifactory"
 
 postgres_jdbc_url: "http://jdbc.postgresql.org/download/postgresql-9.3-1102.jdbc4.jar"
 

@@ -3,9 +3,18 @@
 
 # Download & install
 - include: install.yml
+  sudo: yes
+  vars:
+    sudo: yes
 
 # Database configuration, one or the other
 - include: postgresql.yml
   when: artifactory_database == 'postgresql'
+  sudo: yes
+  vars:
+    sudo: yes
 - include: mysql.yml
   when: artifactory_database == 'mysql'
+  sudo: yes
+  vars:
+    sudo: yes

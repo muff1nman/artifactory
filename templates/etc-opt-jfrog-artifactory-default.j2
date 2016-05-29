@@ -1,10 +1,7 @@
-#!/bin/sh
+ARTIFACTORY_HOME={{artifactory_home}}
+ARTIFACTORY_USER={{artifactory_username}}
 
-#Default values
-export ARTIFACTORY_HOME={{artifactory_home}}
-export ARTIFACTORY_USER={{artifactory_username}}
+TOMCAT_HOME={{artifactory_home}}/tomcat
+ARTIFACTORY_PID=/var/run/artifactory/artifactory.pid
 
-export TOMCAT_HOME={{artifactory_home}}/tomcat
-export ARTIFACTORY_PID=$ARTIFACTORY_HOME/run/artifactory.pid
-
-export JAVA_OPTIONS="-server -Xms512m -Xmx2g -Xss256k -XX:+UseG1GC"
+JAVA_OPTIONS="-server -Xms512m -Xmx2g -Xss256k -XX:+UseG1GC -Djruby.compile.invokedynamic=false -Dfile.encoding=UTF8 -Dartdist=zip -Dorg.apache.tomcat.util.buf.UDecoder.ALLOW_ENCODED_SLASH=true"

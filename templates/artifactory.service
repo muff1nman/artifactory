@@ -1,0 +1,15 @@
+[Unit]
+Description=Artifactory Server
+After=syslog.target network.target
+
+[Service]
+Type=forking
+RuntimeDirectory=artifactory
+User={{ artifactory_username }}
+Group={{ artifactory_group }}
+PIDFile=/var/run/artifactory/artifactory.pid
+EnvironmentFile=/etc/sysconfig/artifactory
+ExecStart={{ artifactory_home }}/bin/artifactory.sh start
+
+[Install]
+WantedBy=multi-user.target
