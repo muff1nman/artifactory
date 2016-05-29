@@ -30,7 +30,7 @@
 - file: state=directory path=/var/cache/ansible
 
 - name: 'verify presence of artifactory'
-  stat: path="/opt/artifactory/artifactory-{{artifactory_version}}/webapps/artifactory.war"
+  stat: path="/opt/artifactory/artifactory-{{artifactory_license}}-{{artifactory_version}}/webapps/artifactory.war"
   register: jarfile
 
 - name: 'verify presence of artifactory_file'
