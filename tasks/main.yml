@@ -2,10 +2,10 @@
 # features.mysql or features.postgresql should be true
 
 # Download & install
-- include: install.yml
+- include_tasks: install.yml
 
 # Database configuration, one or the other
-- include: postgresql.yml
+- include_tasks: postgresql.yml
   when: artifactory_database == 'postgresql'
-- include: mysql.yml
+- include_tasks: mysql.yml
   when: artifactory_database == 'mysql'
